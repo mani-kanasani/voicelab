@@ -54,27 +54,56 @@ export class FileTooLargeError extends Error {
   }
 }
 
-// Netlify Functions cap request bodies at ~6 MB; stay comfortably under it.
-export const MAX_AUDIO_BYTES = 5 * 1024 * 1024;
+export const MAX_AUDIO_BYTES = 2 * 1024 * 1024 * 1024; // Deepgram's 2 GB ceiling
+const CHUNK = 4 * 1024 * 1024; // stay under Netlify's ~6 MB function-body limit
+
+export type TranscribeProgress = { phase: "upload" | "transcribe"; pct: number };
 
 /**
- * Transcription runs through our own Netlify Function (Deepgram blocks browser
- * REST via CORS). The function forwards the audio to Deepgram server-side and
- * returns the raw response, which we assemble into diarized utterances here.
+ * Transcribe any-size local audio. Deepgram blocks browser REST (CORS) and
+ * Netlify caps a function body at ~6 MB, so the file is chunk-uploaded into
+ * Netlify Blobs, a 15-minute background function feeds the whole file to
+ * Deepgram, and we poll for the diarized result. No size limit but Deepgram's 2 GB.
  */
-export async function transcribeFile(file: File): Promise<Assembled> {
+export async function transcribeFile(
+  file: File,
+  onProgress?: (p: TranscribeProgress) => void
+): Promise<Assembled> {
   if (file.size > MAX_AUDIO_BYTES) throw new FileTooLargeError();
 
-  const res = await fetch("/.netlify/functions/transcribe", {
-    method: "POST",
-    headers: { "Content-Type": file.type || "audio/*" },
-    body: file,
-  });
-  if (res.status === 503) throw new NoDeepgramKeyError();
-  if (res.status === 413) throw new FileTooLargeError();
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || err.error || `Transcription failed (${res.status})`);
+  const job = (crypto.randomUUID?.() ?? `${Date.now()}-${Math.round(Math.random() * 1e9)}`).replace(/-/g, "");
+  const parts = Math.max(1, Math.ceil(file.size / CHUNK));
+
+  // 1. Chunk the file past Netlify's 6 MB wall into Blobs.
+  for (let i = 0; i < parts; i++) {
+    const chunk = file.slice(i * CHUNK, (i + 1) * CHUNK);
+    const res = await fetch(`/.netlify/functions/upload-chunk?job=${job}&part=${i}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/octet-stream" },
+      body: chunk,
+    });
+    if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+    onProgress?.({ phase: "upload", pct: Math.round(((i + 1) / parts) * 100) });
   }
-  return assembleTranscript(await res.json());
+
+  // 2. Kick off the background transcription (returns 202).
+  const q = new URLSearchParams({ job, parts: String(parts), type: file.type || "audio/*", name: file.name });
+  const trig = await fetch(`/.netlify/functions/transcribe-large-background?${q.toString()}`, { method: "POST" });
+  if (!trig.ok && trig.status !== 202) throw new Error(`Could not start transcription (${trig.status})`);
+  onProgress?.({ phase: "transcribe", pct: 0 });
+
+  // 3. Poll for the diarized result.
+  const deadline = Date.now() + 16 * 60 * 1000;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 3000));
+    const s = await fetch(`/.netlify/functions/transcription-status?job=${job}`);
+    if (!s.ok) continue;
+    const j = await s.json();
+    if (j.status === "done") return j.result as Assembled;
+    if (j.status === "error") {
+      if (j.error === "no_key") throw new NoDeepgramKeyError();
+      throw new Error(j.error || "Transcription failed");
+    }
+  }
+  throw new Error("Transcription timed out");
 }

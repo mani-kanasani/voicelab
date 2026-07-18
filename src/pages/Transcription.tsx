@@ -3,7 +3,8 @@ import { toast } from "sonner";
 import { UploadCloud, FileAudio, Copy, Download, Trash2, Save, KeyRound, Loader2, ArrowLeft } from "lucide-react";
 import type { Project, Transcript, Utterance } from "@/lib/types";
 import { getConfig, getTranscripts, saveTranscript, deleteTranscript } from "@/lib/api";
-import { transcribeFile, NoDeepgramKeyError, FileTooLargeError } from "@/lib/deepgram";
+import KeyField from "@/components/KeyField";
+import { transcribeFile, NoDeepgramKeyError, FileTooLargeError, type TranscribeProgress } from "@/lib/deepgram";
 import { fmtDuration, relativeTime } from "@/lib/format";
 
 type Draft = { filename: string; durationSeconds: number | null; utterances: Utterance[]; plainText: string };
@@ -14,6 +15,7 @@ const speakerColor = (n: number) => SPEAKER_COLORS[n % SPEAKER_COLORS.length];
 export default function Transcription({ project }: { project: Project }) {
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState<TranscribeProgress | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [viewing, setViewing] = useState<Transcript | null>(null);
   const [library, setLibrary] = useState<Transcript[]>([]);
@@ -32,10 +34,11 @@ export default function Transcription({ project }: { project: Project }) {
 
   async function handleFile(file: File) {
     setProcessing(true);
+    setProgress(null);
     setDraft(null);
     setViewing(null);
     try {
-      const result = await transcribeFile(file);
+      const result = await transcribeFile(file, setProgress);
       setDraft({ filename: file.name, ...result });
       toast.success("Transcribed", { description: `${result.utterances.length} segments` });
     } catch (e) {
@@ -43,14 +46,13 @@ export default function Transcription({ project }: { project: Project }) {
         setHasKey(false);
         toast.error("No Deepgram key configured");
       } else if (e instanceof FileTooLargeError) {
-        toast.error("File too large", {
-          description: "This deploy handles clips up to ~5 MB (a few minutes). Try a shorter segment.",
-        });
+        toast.error("File too large", { description: "Deepgram's limit is 2 GB — that file is bigger." });
       } else {
         toast.error("Transcription failed", { description: (e as Error).message });
       }
     } finally {
       setProcessing(false);
+      setProgress(null);
     }
   }
 
@@ -78,23 +80,28 @@ export default function Transcription({ project }: { project: Project }) {
 
   if (!hasKey) {
     return (
-      <div className="neo-raised rounded-2xl p-8 max-w-xl mx-auto text-center">
-        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl neo-chip flex items-center justify-center">
-          <KeyRound className="text-brand" />
+      <div className="neo-raised rounded-2xl p-8 max-w-xl mx-auto">
+        <div className="text-center mb-5">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl neo-chip flex items-center justify-center">
+            <KeyRound className="text-brand" />
+          </div>
+          <h2 className="text-h3 mb-1">Add your Deepgram key to transcribe</h2>
+          <p className="text-small text-text-secondary">
+            Free tier covers hundreds of hours. Paste it below — it saves instantly, no redeploy.
+          </p>
         </div>
-        <h2 className="text-h3 mb-2">Add your Deepgram key to enable transcription</h2>
-        <p className="text-small text-text-secondary mb-4">
-          Transcription uses your own Deepgram account (free credit covers hundreds of hours). In Netlify, open{" "}
-          <b>Site settings → Environment variables</b>, add <code className="neo-chip px-1.5 py-0.5">DEEPGRAM_API_KEY</code>, and redeploy.
+        <KeyField
+          field="deepgram"
+          label="Deepgram API key"
+          getUrl="https://console.deepgram.com/signup"
+          onSaved={async () => {
+            const c = await getConfig();
+            setHasKey(c.hasDeepgram);
+          }}
+        />
+        <p className="text-[11px] text-text-muted mt-3 text-center">
+          Prefer env vars? You can still set <code className="neo-chip px-1 py-0.5">DEEPGRAM_API_KEY</code> in Netlify.
         </p>
-        <a
-          href="https://console.deepgram.com/signup"
-          target="_blank"
-          rel="noreferrer"
-          className="neo-btn-brand inline-flex rounded-xl px-5 py-2.5 font-semibold"
-        >
-          Get a free Deepgram key
-        </a>
       </div>
     );
   }
@@ -135,8 +142,14 @@ export default function Transcription({ project }: { project: Project }) {
           {processing ? (
             <div className="py-4">
               <Loader2 className="mx-auto mb-3 animate-spin text-brand" />
-              <div className="font-semibold">Transcribing…</div>
-              <div className="text-small text-text-muted">Uploading to Deepgram and diarizing speakers.</div>
+              <div className="font-semibold">
+                {progress?.phase === "upload" ? `Uploading… ${progress.pct}%` : "Transcribing…"}
+              </div>
+              <div className="text-small text-text-muted">
+                {progress?.phase === "upload"
+                  ? "Sending your file securely."
+                  : "Diarizing speakers — long calls can take a minute or two."}
+              </div>
             </div>
           ) : (
             <>
@@ -145,7 +158,7 @@ export default function Transcription({ project }: { project: Project }) {
               <button onClick={() => inputRef.current?.click()} className="neo-btn-brand rounded-xl px-5 py-2 font-semibold">
                 Choose file
               </button>
-              <div className="text-small text-text-muted mt-3">MP3, M4A, WAV, FLAC, OGG, WebM · up to ~5&nbsp;MB</div>
+              <div className="text-small text-text-muted mt-3">MP3, M4A, WAV, FLAC, OGG, WebM · any length</div>
             </>
           )}
         </div>

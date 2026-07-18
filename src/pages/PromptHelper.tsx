@@ -16,6 +16,7 @@ import {
 import type { Project, SavedPrompt } from "@/lib/types";
 import { getConfig, generatePrompt, savePrompt, getPrompts, deletePrompt } from "@/lib/api";
 import { relativeTime } from "@/lib/format";
+import KeyField from "@/components/KeyField";
 
 const VERTICALS = [
   "Dental",
@@ -137,24 +138,28 @@ export default function PromptHelper({ project }: { project: Project }) {
 
   if (!hasKey) {
     return (
-      <div className="neo-raised rounded-2xl p-8 max-w-xl mx-auto text-center">
-        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl neo-chip flex items-center justify-center">
-          <KeyRound className="text-brand" />
+      <div className="neo-raised rounded-2xl p-8 max-w-xl mx-auto">
+        <div className="text-center mb-5">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl neo-chip flex items-center justify-center">
+            <KeyRound className="text-brand" />
+          </div>
+          <h2 className="text-h3 mb-1">Add a Google Gemini key to generate prompts</h2>
+          <p className="text-small text-text-secondary">
+            Free tier is plenty. Paste it below — it saves instantly, no redeploy.
+          </p>
         </div>
-        <h2 className="text-h3 mb-2">Add a Google Gemini key to enable the Prompt Helper</h2>
-        <p className="text-small text-text-secondary mb-4">
-          Prompt generation uses your own Gemini key (free tier is plenty). In Netlify, open{" "}
-          <b>Site settings → Environment variables</b>, add{" "}
-          <code className="neo-chip px-1.5 py-0.5">GEMINI_API_KEY</code>, and redeploy.
+        <KeyField
+          field="gemini"
+          label="Google Gemini API key"
+          getUrl="https://aistudio.google.com/apikey"
+          onSaved={async () => {
+            const c = await getConfig();
+            setHasKey(c.hasGemini);
+          }}
+        />
+        <p className="text-[11px] text-text-muted mt-3 text-center">
+          Prefer env vars? You can still set <code className="neo-chip px-1 py-0.5">GEMINI_API_KEY</code> in Netlify.
         </p>
-        <a
-          href="https://aistudio.google.com/apikey"
-          target="_blank"
-          rel="noreferrer"
-          className="neo-btn-brand inline-flex rounded-xl px-5 py-2.5 font-semibold"
-        >
-          Get a free Gemini key
-        </a>
       </div>
     );
   }

@@ -22,10 +22,17 @@ export const getConfig = () =>
   req<{
     hasDeepgram: boolean;
     hasGemini: boolean;
+    deepgramHint: string | null;
+    geminiHint: string | null;
+    deepgramEnv: boolean;
+    geminiEnv: boolean;
     hasPassword: boolean;
     hasRetellKey: boolean;
     authed: boolean;
   }>("config");
+
+export const saveSettings = (input: { deepgram?: string; gemini?: string }) =>
+  req<{ ok: true }>("save-settings", { method: "POST", headers: jsonHeaders, body: JSON.stringify(input) });
 
 export const verifyPassword = (password: string) =>
   req<{ ok: true }>("verify-password", { method: "POST", headers: jsonHeaders, body: JSON.stringify({ password }) });

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Home as HomeIcon } from "lucide-react";
+import { Home as HomeIcon, Settings as SettingsIcon } from "lucide-react";
 import type { Project } from "@/lib/types";
 import { createProject, deleteProject, listProjects, renameProject } from "@/lib/api";
 import ProjectSwitcher from "./ProjectSwitcher";
+import Settings from "./Settings";
 import Home from "@/pages/Home";
 import Testing from "@/pages/Testing";
 import Transcription from "@/pages/Transcription";
@@ -16,6 +17,7 @@ export default function Shell() {
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [view, setView] = useState<View>("home");
   const [loading, setLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
   const refresh = useCallback(async () => {
     const list = await listProjects();
@@ -62,7 +64,14 @@ export default function Shell() {
             <HomeIcon size={14} /> Home
           </button>
         )}
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setShowSettings(true)}
+            title="API keys"
+            className="neo-chip-btn neo-chip p-2 text-text-secondary"
+          >
+            <SettingsIcon size={16} />
+          </button>
           {current && (
             <ProjectSwitcher
               projects={projects}
@@ -75,6 +84,8 @@ export default function Shell() {
           )}
         </div>
       </header>
+
+      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 mt-6">
         {loading ? (

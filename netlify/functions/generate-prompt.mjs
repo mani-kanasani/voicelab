@@ -1,13 +1,14 @@
 import { generatePrompt } from "../lib/gemini.mjs";
 import { json } from "../lib/http.mjs";
 import { hasValidAccess } from "../lib/auth.mjs";
+import { getKey } from "../lib/keys.mjs";
 
 const DIRECTIONS = ["inbound", "outbound"];
 
 export default async (req) => {
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
   if (!hasValidAccess(req)) return json({ error: "unauthorized" }, 401);
-  const key = process.env.GEMINI_API_KEY;
+  const key = await getKey("GEMINI_API_KEY");
   if (!key) return json({ error: "no_key" }, 503);
 
   const body = await req.json().catch(() => ({}));

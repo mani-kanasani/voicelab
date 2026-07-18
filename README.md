@@ -45,7 +45,7 @@ Each **Project** has its own webhook URL, so you can point several agents (or se
 2. Drag in or choose an audio file (MP3, M4A, WAV, FLAC, OGG, WebM).
 3. Get a diarized transcript with speaker labels, then **Save** it to your library.
 
-**File size:** clips up to ~5 MB (a few minutes) transcribe reliably. For much longer recordings, split them first. *(A larger-file path is on the roadmap.)*
+**File size:** no practical limit — large recordings are uploaded in chunks and transcribed by a 15-minute background function, so full-length call recordings work (Deepgram's own ceiling is 2 GB).
 
 ## ✨ Using the Prompt Helper
 
@@ -57,16 +57,20 @@ The generated prompt follows Retell's recommended structure (identity, style, ca
 
 ---
 
-## ⚙️ Optional settings (Netlify → Site settings → Environment variables)
+## ⚙️ API keys & optional settings
+
+**Easiest way — paste keys in the app.** Open your site, click the **⚙ (API keys)** button in the header (or the setup screen inside Transcription / Prompt Helper), and paste your Deepgram / Gemini key. It saves instantly — **no redeploy** — and is stored only in your own instance.
+
+You can instead set any of these as **Netlify environment variables** (Site settings → Environment variables), which take precedence over in-app keys:
 
 | Variable | What it does |
 |---|---|
 | `DEEPGRAM_API_KEY` | Enables the Transcription tool. [Get a free key.](https://console.deepgram.com/signup) |
 | `GEMINI_API_KEY` | Enables the Prompt Helper tool. [Get a free key.](https://aistudio.google.com/apikey) |
-| `SITE_PASSWORD` | Locks your VoiceLab behind a single password screen. |
+| `SITE_PASSWORD` | Locks your VoiceLab behind a single password screen (and protects any keys you saved in-app). |
 | `RETELL_API_KEY` | Turns on signature verification for the Testing webhook (extra security). Without it, the per-project token in the URL is the gate. |
 
-After adding or changing a variable, trigger a redeploy (Netlify → Deploys → **Trigger deploy**).
+After adding or changing an **environment variable**, trigger a redeploy (Netlify → Deploys → **Trigger deploy**). In-app keys don't need a redeploy.
 
 ---
 
