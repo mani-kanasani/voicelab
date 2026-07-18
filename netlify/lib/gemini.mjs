@@ -4,7 +4,9 @@
 // system instruction below (sourced from Retell's prompt guide + the FilmBros
 // "Ella" production prompt skeleton).
 
-export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+// Flash-Lite has the most rate-limit headroom, so it's the default to avoid 429s.
+export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite";
+export const GEMINI_MODELS = ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-2.5-pro"];
 
 export const GENERATOR_SYSTEM_INSTRUCTION = `You are an expert at writing system prompts for Retell AI voice agents. Given a short description of a voice agent plus a few settings, you output ONE ready-to-use Retell system prompt in Markdown.
 
@@ -71,25 +73,36 @@ export function extractGeminiText(json) {
 }
 
 export async function generatePrompt(apiKey, inputs, model = DEFAULT_GEMINI_MODEL) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-    {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: GENERATOR_SYSTEM_INSTRUCTION }] },
+    contents: [{ role: "user", parts: [{ text: buildUserMessage(inputs) }] }],
+    generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
+  });
+
+  // One short retry on a 429 — clears a bursty per-minute limit without risking
+  // the function timeout. Sustained limits still surface (switch to Flash-Lite).
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: GENERATOR_SYSTEM_INSTRUCTION }] },
-        contents: [{ role: "user", parts: [{ text: buildUserMessage(inputs) }] }],
-        generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
-      }),
+      body,
+    });
+    if (res.status === 429 && attempt === 0) {
+      await new Promise((r) => setTimeout(r, 2000));
+      continue;
     }
-  );
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    const err = new Error(`gemini ${res.status}: ${text.slice(0, 200)}`);
-    err.status = res.status;
-    throw err;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      const err = new Error(`gemini ${res.status}: ${text.slice(0, 200)}`);
+      err.status = res.status;
+      throw err;
+    }
+    const out = extractGeminiText(await res.json());
+    if (!out) throw new Error("Gemini returned no text");
+    return out;
   }
-  const out = extractGeminiText(await res.json());
-  if (!out) throw new Error("Gemini returned no text");
-  return out;
+  const err = new Error("gemini 429: rate limit (retried once)");
+  err.status = 429;
+  throw err;
 }

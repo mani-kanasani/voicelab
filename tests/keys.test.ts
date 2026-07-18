@@ -2,12 +2,12 @@ import { describe, it, expect } from "vitest";
 import { pickKey } from "../netlify/lib/keys.mjs";
 
 describe("pickKey", () => {
-  it("prefers the env var over the stored key", () => {
-    expect(pickKey("env-key", "stored")).toBe("env-key");
+  it("prefers the in-app (stored) key over the env var", () => {
+    expect(pickKey("env-key", "stored")).toBe("stored");
   });
-  it("falls back to the stored key when no env var", () => {
-    expect(pickKey(undefined, "stored")).toBe("stored");
-    expect(pickKey("", "g")).toBe("g");
+  it("falls back to the env var when nothing is stored in-app", () => {
+    expect(pickKey("env-key", "")).toBe("env-key");
+    expect(pickKey("env-key", undefined)).toBe("env-key");
   });
   it("returns empty when neither is set", () => {
     expect(pickKey("", "")).toBe("");

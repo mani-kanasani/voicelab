@@ -1,4 +1,4 @@
-import { generatePrompt } from "../lib/gemini.mjs";
+import { generatePrompt, GEMINI_MODELS } from "../lib/gemini.mjs";
 import { json } from "../lib/http.mjs";
 import { hasValidAccess } from "../lib/auth.mjs";
 import { getKey } from "../lib/keys.mjs";
@@ -27,8 +27,10 @@ export default async (req) => {
       : [],
   };
 
+  const model = typeof body.model === "string" && GEMINI_MODELS.includes(body.model) ? body.model : undefined;
+
   try {
-    const prompt = await generatePrompt(key, inputs);
+    const prompt = await generatePrompt(key, inputs, model);
     return json({ prompt });
   } catch (e) {
     const status = e?.status === 400 ? 400 : e?.status === 429 ? 429 : 502;

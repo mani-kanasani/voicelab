@@ -76,6 +76,7 @@ export type GeneratePromptInput = {
   businessName: string;
   agentName: string;
   capabilities: string[];
+  model?: string;
 };
 export const generatePrompt = (input: GeneratePromptInput) =>
   req<{ prompt: string }>("generate-prompt", { method: "POST", headers: jsonHeaders, body: JSON.stringify(input) });

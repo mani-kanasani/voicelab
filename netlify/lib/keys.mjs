@@ -5,10 +5,11 @@ import { readJSON, settingKey } from "./store.mjs";
 // only ever used server-side — never returned to the browser.
 export const KEY_FIELD = { DEEPGRAM_API_KEY: "deepgram", GEMINI_API_KEY: "gemini" };
 
-/** Pure precedence: env var wins, else the stored value. Trimmed. */
+/** Pure precedence: an in-app (stored) key wins, else the env var. Trimmed.
+ * In-app first so a freshly pasted key can override a stale/invalid env var. */
 export function pickKey(env, stored) {
-  if (typeof env === "string" && env.trim()) return env.trim();
-  return typeof stored === "string" ? stored.trim() : "";
+  if (typeof stored === "string" && stored.trim()) return stored.trim();
+  return typeof env === "string" ? env.trim() : "";
 }
 
 export async function getKey(name) {

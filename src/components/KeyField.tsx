@@ -69,8 +69,8 @@ export default function KeyField({
         </button>
       </div>
       {env && (
-        <p className="text-[11px] text-warning mt-1.5">
-          An environment variable is set for this key and takes precedence — remove it in Netlify to manage the key here.
+        <p className="text-[11px] text-text-muted mt-1.5">
+          A key is also set as an environment variable — the key you save here is used instead.
         </p>
       )}
     </div>

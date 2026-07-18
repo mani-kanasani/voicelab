@@ -46,6 +46,12 @@ const CAPABILITIES = [
   "Pricing / quoting",
 ];
 
+const MODELS = [
+  { id: "gemini-2.5-flash-lite", label: "Flash-Lite", hint: "fastest · most rate-limit headroom" },
+  { id: "gemini-2.5-flash", label: "Flash", hint: "balanced" },
+  { id: "gemini-2.5-pro", label: "Pro", hint: "best quality · tightest limits" },
+];
+
 type Direction = "inbound" | "outbound";
 
 export default function PromptHelper({ project }: { project: Project }) {
@@ -57,6 +63,7 @@ export default function PromptHelper({ project }: { project: Project }) {
   const [direction, setDirection] = useState<Direction>("inbound");
   const [capabilities, setCapabilities] = useState<string[]>([]);
   const [description, setDescription] = useState("");
+  const [model, setModel] = useState<string>(() => localStorage.getItem("vl_gemini_model") || "gemini-2.5-flash-lite");
 
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -88,7 +95,7 @@ export default function PromptHelper({ project }: { project: Project }) {
     setViewing(null);
     setResult(null);
     try {
-      const { prompt } = await generatePrompt({ description, direction, vertical, businessName, agentName, capabilities });
+      const { prompt } = await generatePrompt({ description, direction, vertical, businessName, agentName, capabilities, model });
       setResult(prompt);
       toast.success("Prompt generated");
     } catch (e) {
@@ -97,7 +104,7 @@ export default function PromptHelper({ project }: { project: Project }) {
         setHasKey(false);
         toast.error("No Gemini key configured");
       } else if (/429/.test(msg) || /rate/i.test(msg)) {
-        toast.error("Gemini rate limit — wait a moment and try again");
+        toast.error("Gemini rate limit", { description: "Switch the Model to Flash-Lite (most headroom), or wait a moment." });
       } else {
         toast.error("Generation failed", { description: msg });
       }
@@ -230,6 +237,33 @@ export default function PromptHelper({ project }: { project: Project }) {
               placeholder="e.g. Answers the front desk for a dental office. Books and reschedules cleanings, answers insurance questions from our knowledge base, and transfers dental emergencies to the on-call line."
               className="neo-field w-full rounded-xl p-3 text-[13px] outline-none"
             />
+          </div>
+
+          <div>
+            <div className="text-caption text-text-muted mb-1.5">Model</div>
+            <div className="grid grid-cols-3 gap-2">
+              {MODELS.map((m) => {
+                const active = model === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    title={m.hint}
+                    onClick={() => {
+                      setModel(m.id);
+                      try {
+                        localStorage.setItem("vl_gemini_model", m.id);
+                      } catch {
+                        /* ignore */
+                      }
+                    }}
+                    className={`rounded-xl py-2 text-sm font-semibold ${active ? "neo-btn-brand text-white" : "neo-raised neo-interactive text-text-secondary"}`}
+                  >
+                    {m.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-text-muted mt-1.5">Hitting rate limits? Flash-Lite has the most headroom.</p>
           </div>
 
           <button
