@@ -4,6 +4,7 @@ A tiny, self-hosted toolkit for building voice AI agents:
 
 - **Testing** — paste a webhook into your [Retell](https://www.retellai.com/) agent, watch its calls arrive live, and rate each one (Bad / Weak / Good / Perfect + latency + notes).
 - **Transcription** — drop in an audio file and get a **diarized** transcript (labeled by speaker), saved to a reusable library.
+- **Prompt Helper** — describe your agent, check its capabilities, pick a vertical + inbound/outbound, and generate a best-practice Retell system prompt.
 
 Everything is organized by **Projects** (one per client or per agent), and it all runs on **your own** free Netlify site with zero database to set up.
 
@@ -46,6 +47,14 @@ Each **Project** has its own webhook URL, so you can point several agents (or se
 
 **File size:** clips up to ~5 MB (a few minutes) transcribe reliably. For much longer recordings, split them first. *(A larger-file path is on the roadmap.)*
 
+## ✨ Using the Prompt Helper
+
+1. Click **Prompt Helper** (needs a `GEMINI_API_KEY` — see below).
+2. Describe your agent in a sentence or two, check the capabilities it needs (booking, transfer, knowledge-base Q&A…), pick a vertical, and choose inbound or outbound.
+3. Hit **Generate** → get a structured, best-practice Retell system prompt. Copy it into your Retell agent, or **Save** it to your library.
+
+The generated prompt follows Retell's recommended structure (identity, style, call flow, guardrails, tools, knowledge base) and voice-specific rules. Uses your own Google Gemini key (free tier is plenty).
+
 ---
 
 ## ⚙️ Optional settings (Netlify → Site settings → Environment variables)
@@ -53,6 +62,7 @@ Each **Project** has its own webhook URL, so you can point several agents (or se
 | Variable | What it does |
 |---|---|
 | `DEEPGRAM_API_KEY` | Enables the Transcription tool. [Get a free key.](https://console.deepgram.com/signup) |
+| `GEMINI_API_KEY` | Enables the Prompt Helper tool. [Get a free key.](https://aistudio.google.com/apikey) |
 | `SITE_PASSWORD` | Locks your VoiceLab behind a single password screen. |
 | `RETELL_API_KEY` | Turns on signature verification for the Testing webhook (extra security). Without it, the per-project token in the URL is the gate. |
 

@@ -47,7 +47,7 @@ export default async (req) => {
     projects = projects.filter((x) => x.id !== id);
     await writeJSON(PROJECTS_KEY, projects);
     const store = getVoiceStore();
-    for (const prefix of [`calls/${id}/`, `ratings/${id}/`, `transcripts/${id}/`]) {
+    for (const prefix of [`calls/${id}/`, `ratings/${id}/`, `transcripts/${id}/`, `prompts/${id}/`]) {
       for (const key of await listKeys(prefix)) await store.delete(key);
     }
     return json({ ok: true });

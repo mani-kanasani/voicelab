@@ -7,8 +7,9 @@ import ProjectSwitcher from "./ProjectSwitcher";
 import Home from "@/pages/Home";
 import Testing from "@/pages/Testing";
 import Transcription from "@/pages/Transcription";
+import PromptHelper from "@/pages/PromptHelper";
 
-export type View = "home" | "testing" | "transcription";
+export type View = "home" | "testing" | "transcription" | "prompthelper";
 
 export default function Shell() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -84,8 +85,10 @@ export default function Shell() {
           <Home onOpen={setView} />
         ) : view === "testing" ? (
           <Testing project={current} />
-        ) : (
+        ) : view === "transcription" ? (
           <Transcription project={current} />
+        ) : (
+          <PromptHelper project={current} />
         )}
       </main>
     </div>

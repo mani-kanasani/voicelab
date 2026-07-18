@@ -22,5 +22,6 @@
 # NONE are required — the app runs and is useful with all of these unset.
 [template.environment]
   DEEPGRAM_API_KEY = "Optional. Enables the Transcription card. Get a free key (hundreds of hours of credit) at https://console.deepgram.com/signup"
+  GEMINI_API_KEY   = "Optional. Enables the Prompt Helper card. Get a free key at https://aistudio.google.com/apikey"
   SITE_PASSWORD    = "Optional. Set a password to lock your VoiceLab behind a single login screen."
   RETELL_API_KEY   = "Optional. Enables signature verification on the Testing webhook. Leave blank to accept calls via the per-project token only."

@@ -1,4 +1,4 @@
-import type { Call, Project, Transcript, Utterance } from "./types";
+import type { Call, Project, SavedPrompt, Transcript, Utterance } from "./types";
 
 const BASE = "/.netlify/functions";
 const jsonHeaders = { "content-type": "application/json" };
@@ -19,7 +19,13 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const getConfig = () =>
-  req<{ hasDeepgram: boolean; hasPassword: boolean; hasRetellKey: boolean; authed: boolean }>("config");
+  req<{
+    hasDeepgram: boolean;
+    hasGemini: boolean;
+    hasPassword: boolean;
+    hasRetellKey: boolean;
+    authed: boolean;
+  }>("config");
 
 export const verifyPassword = (password: string) =>
   req<{ ok: true }>("verify-password", { method: "POST", headers: jsonHeaders, body: JSON.stringify({ password }) });
@@ -53,5 +59,25 @@ export const saveTranscript = (input: {
 }) => req<Transcript>("save-transcript", { method: "POST", headers: jsonHeaders, body: JSON.stringify(input) });
 export const deleteTranscript = (projectId: string, id: string) =>
   req<{ ok: true }>(`delete-transcript?project=${encodeURIComponent(projectId)}&id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+
+export type GeneratePromptInput = {
+  description: string;
+  direction: "inbound" | "outbound";
+  vertical: string;
+  businessName: string;
+  agentName: string;
+  capabilities: string[];
+};
+export const generatePrompt = (input: GeneratePromptInput) =>
+  req<{ prompt: string }>("generate-prompt", { method: "POST", headers: jsonHeaders, body: JSON.stringify(input) });
+
+export const getPrompts = (projectId: string) =>
+  req<SavedPrompt[]>(`get-prompts?project=${encodeURIComponent(projectId)}`);
+export const savePrompt = (input: Omit<SavedPrompt, "id" | "createdAt">) =>
+  req<SavedPrompt>("save-prompt", { method: "POST", headers: jsonHeaders, body: JSON.stringify(input) });
+export const deletePrompt = (projectId: string, id: string) =>
+  req<{ ok: true }>(`delete-prompt?project=${encodeURIComponent(projectId)}&id=${encodeURIComponent(id)}`, {
     method: "DELETE",
   });

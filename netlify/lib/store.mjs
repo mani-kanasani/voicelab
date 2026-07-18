@@ -5,6 +5,7 @@ export const PROJECTS_KEY = "projects";
 export const callKey = (projectId, callId) => `calls/${projectId}/${callId}`;
 export const ratingKey = (projectId, callId) => `ratings/${projectId}/${callId}`;
 export const transcriptKey = (projectId, id) => `transcripts/${projectId}/${id}`;
+export const promptKey = (projectId, id) => `prompts/${projectId}/${id}`;
 
 export const getVoiceStore = () => getStore("voicelab");
 

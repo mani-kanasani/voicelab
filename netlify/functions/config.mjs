@@ -5,6 +5,7 @@ import { hasValidAccess } from "../lib/auth.mjs";
 export default async (req) =>
   json({
     hasDeepgram: !!process.env.DEEPGRAM_API_KEY,
+    hasGemini: !!process.env.GEMINI_API_KEY,
     hasPassword: !!process.env.SITE_PASSWORD,
     hasRetellKey: !!process.env.RETELL_API_KEY,
     authed: hasValidAccess(req),

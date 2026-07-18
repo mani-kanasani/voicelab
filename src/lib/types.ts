@@ -48,3 +48,15 @@ export type Transcript = {
   utterances: Utterance[];
   plainText: string;
 };
+
+export type SavedPrompt = {
+  id: string;
+  projectId: string;
+  title: string;
+  vertical: string;
+  direction: "inbound" | "outbound";
+  capabilities: string[];
+  description: string;
+  prompt: string;
+  createdAt: string;
+};
