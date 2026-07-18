@@ -11,7 +11,10 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     getConfig()
-      .then((c) => setNeedPassword(c.hasPassword))
+      .then((c) => {
+        setNeedPassword(c.hasPassword);
+        if (c.authed) setUnlocked(true); // valid cookie from a previous unlock
+      })
       .catch(() => setNeedPassword(false));
   }, []);
 

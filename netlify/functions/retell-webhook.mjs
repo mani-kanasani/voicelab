@@ -23,14 +23,19 @@ export default async (req) => {
   }
 
   const { eventType, callId, fields } = parseRetellEvent(body);
-  if (!callId) return json({ ok: true, note: "no call_id" }); // ack, nothing to store
+  // Ack (don't trigger Retell retries) but skip storage for missing/oversized ids.
+  if (!callId || typeof callId !== "string" || callId.length > 256) return json({ ok: true, note: "no/invalid call_id" });
 
   const key = callKey(project.id, callId);
   const existing = await readJSON(key, null);
   const merged = mergeCall(existing, fields, eventType);
   merged.callId = callId;
   merged.projectId = project.id;
-  await writeJSON(key, merged);
+  try {
+    await writeJSON(key, merged);
+  } catch {
+    return json({ error: "store_failed" }, 500);
+  }
 
   return json({ ok: true });
 };

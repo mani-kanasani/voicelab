@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { json } from "../lib/http.mjs";
+import { accessCookie } from "../lib/auth.mjs";
 
 const eq = (a, b) => {
   const ab = Buffer.from(a);
@@ -10,9 +11,9 @@ const eq = (a, b) => {
 export default async (req) => {
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
   const expected = process.env.SITE_PASSWORD || "";
-  const { password } = await req.json().catch(() => ({}));
-  if (!expected || !eq(password || "", expected)) return json({ error: "invalid" }, 401);
-  return json({ ok: true }, 200, {
-    "set-cookie": "vl_access=ok; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000",
-  });
+  const body = await req.json().catch(() => ({}));
+  const password = typeof body.password === "string" ? body.password : "";
+  if (!expected || !eq(password, expected)) return json({ error: "invalid" }, 401);
+  // Issue a signed cookie that protected functions verify server-side.
+  return json({ ok: true }, 200, { "set-cookie": accessCookie(expected) });
 };

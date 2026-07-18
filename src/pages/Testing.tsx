@@ -36,15 +36,18 @@ export default function Testing({ project }: { project: Project }) {
   const [panelOpen, setPanelOpen] = useState(true);
   const [copied, setCopied] = useState(false);
   const collapsedOnce = useRef(false);
+  const reqSeq = useRef(0);
 
   const webhookUrl = `${window.location.origin}/.netlify/functions/retell-webhook?token=${project.webhookToken}`;
 
   useEffect(() => {
     let alive = true;
     async function load() {
+      const seq = ++reqSeq.current;
       try {
         const c = await getCalls(project.id);
-        if (alive) setCalls(c);
+        // Ignore out-of-order responses and any poll superseded by a local update.
+        if (alive && seq === reqSeq.current) setCalls(c);
       } catch {
         /* poll silently */
       }
@@ -188,9 +191,10 @@ export default function Testing({ project }: { project: Project }) {
           <CallDetail
             call={selected}
             projectId={project.id}
-            onRated={(updated) =>
-              setCalls((cs) => cs.map((c) => (c.callId === updated.callId ? updated : c)))
-            }
+            onRated={(updated) => {
+              reqSeq.current++; // invalidate any in-flight poll so it can't revert this
+              setCalls((cs) => cs.map((c) => (c.callId === updated.callId ? updated : c)));
+            }}
           />
         </div>
       )}
