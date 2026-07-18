@@ -12,7 +12,10 @@ export const promptKey = (projectId, id) => `prompts/${projectId}/${id}`;
 export const uploadChunkKey = (job, part) => `uploads/${job}/${part}`;
 export const jobKey = (job) => `jobs/${job}`;
 
-export const getVoiceStore = () => getStore("voicelab");
+// Strong consistency so reads reflect writes immediately (Netlify Blobs is
+// eventually consistent by default — a read right after a write can otherwise
+// lag a few seconds in production).
+export const getVoiceStore = () => getStore({ name: "voicelab", consistency: "strong" });
 
 export async function readJSON(key, fallback = null) {
   const val = await getVoiceStore().get(key, { type: "json" });

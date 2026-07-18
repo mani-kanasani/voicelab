@@ -152,10 +152,7 @@ export default function PromptHelper({ project }: { project: Project }) {
           field="gemini"
           label="Google Gemini API key"
           getUrl="https://aistudio.google.com/apikey"
-          onSaved={async () => {
-            const c = await getConfig();
-            setHasKey(c.hasGemini);
-          }}
+          onSaved={() => setHasKey(true)}
         />
         <p className="text-[11px] text-text-muted mt-3 text-center">
           Prefer env vars? You can still set <code className="neo-chip px-1 py-0.5">GEMINI_API_KEY</code> in Netlify.
