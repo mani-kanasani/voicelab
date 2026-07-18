@@ -1,0 +1,434 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand */
+    --brand-primary: 258 100% 65%;
+    --brand-primary-hover: 254 80% 58%;
+    --brand-deep: 262 60% 27%;
+    --brand-light: 270 55% 78%;
+    --brand-pale: 266 60% 97%;
+
+    /* Shadcn mapped */
+    --background: 260 30% 98%;
+    --foreground: 235 40% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 235 40% 6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 235 40% 6%;
+    --primary: 258 100% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 230 25% 95%;
+    --secondary-foreground: 230 30% 20%;
+    --muted: 230 20% 94%;
+    --muted-foreground: 228 15% 55%;
+    --accent: 266 60% 97%;
+    --accent-foreground: 262 60% 27%;
+    --destructive: 0 72% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 94%;
+    --input: 220 20% 94%;
+    --ring: 258 100% 65%;
+    --radius: 0.75rem;
+
+    /* Status */
+    --success: 160 68% 38%;
+    --success-soft: 152 81% 96%;
+    --warning: 38 92% 50%;
+    --warning-soft: 48 100% 96%;
+    --danger: 0 84% 60%;
+    --danger-soft: 0 86% 97%;
+    --info: 217 91% 60%;
+    --info-soft: 214 100% 97%;
+    --hot-lead: 0 100% 60%;
+
+    /* Text */
+    --text-primary: 235 40% 6%;
+    --text-secondary: 228 18% 35%;
+    --text-muted: 228 12% 60%;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 228 18% 35%;
+    --sidebar-primary: 258 100% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 266 60% 97%;
+    --sidebar-accent-foreground: 262 60% 27%;
+    --sidebar-border: 220 20% 94%;
+    --sidebar-ring: 258 100% 65%;
+
+    /* ── Neomorphic soft-UI layer ──────────────────────────────────────────
+       Every value here is DERIVED from the existing canvas (#F8F7FB) and the
+       brand (#6B4EFF). No new hues:
+         · highlight = white, the light source above the canvas
+         · depth     = the canvas hue darkened + desaturated (a lavender-grey,
+                       not a new colour)
+         · glow/halo = the brand, used at low alpha only
+       Shadow colours are stored as bare RGB triplets so a single token can be
+       reused at several alphas via rgba(var(--neo-…), a). */
+    --neo-face-1: #FDFCFF;          /* raised surface face, near-white         */
+    --neo-face-2: #F1EDF9;          /* gradient far corner (canvas, a touch deeper) */
+    --neo-hi: 255, 255, 255;        /* top-left highlight                       */
+    --neo-sh: 205, 199, 219;        /* bottom-right depth (canvas darkened)     */
+    --neo-sh-strong: 182, 174, 207; /* deeper depth for hover / large surfaces  */
+    --neo-glow: 107, 78, 255;       /* brand — glow + selected halo only        */
+    --neo-radius: 18px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer components {
+  /* .glass is the app's most-used surface (40+ files). It stays a frosted,
+     translucent pane so the aurora background still reads through it — but its
+     flat drop-shadow is now the neomorphic highlight+depth pair, so every
+     screen inherits soft-UI depth from this one definition. No hover baked in
+     (many .glass elements are static containers); interactivity is opt-in via
+     .neo-interactive. */
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: var(--neo-radius);
+    box-shadow:
+      -5px -5px 12px rgba(var(--neo-hi), 0.7),
+       6px  6px 16px rgba(var(--neo-sh), 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  }
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: calc(var(--neo-radius) - 4px);
+    box-shadow:
+      -3px -3px 8px rgba(var(--neo-hi), 0.6),
+       4px  4px 10px rgba(var(--neo-sh), 0.4);
+  }
+  .glass-brand {
+    background: linear-gradient(135deg, rgba(184, 154, 230, 0.15), rgba(107, 78, 255, 0.08));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(107, 78, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(107, 78, 255, 0.12);
+  }
+  /* .clay is the big soft "hero" surface — an opaque raised card, retuned onto
+     the neo depth palette. Static (no hover); use .neo-interactive for lift. */
+  .clay {
+    background: linear-gradient(145deg, var(--neo-face-1), var(--neo-face-2));
+    border-radius: 24px;
+    box-shadow:
+      -12px -12px 30px rgba(var(--neo-hi), 0.9),
+       14px  14px 34px rgba(var(--neo-sh), 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+  .clay-brand {
+    background: linear-gradient(145deg, #7B5FFF, #5A3FE8);
+    border-radius: 20px;
+    color: white;
+    box-shadow:
+      10px 10px 30px rgba(var(--neo-glow), 0.35),
+      -6px -6px 18px rgba(255, 255, 255, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  }
+
+  /* ── Neomorphic primitives ───────────────────────────────────────────────
+     Opaque soft-UI building blocks for surfaces that want the full effect
+     (stat tiles, hero cards, wells, chips, buttons, selected rows). */
+
+  /* RAISED card — light highlight top-left, soft depth bottom-right, on a
+     faint top-left→bottom-right surface gradient. */
+  .neo-raised {
+    background: linear-gradient(145deg, var(--neo-face-1), var(--neo-face-2));
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--neo-radius);
+    box-shadow:
+      -6px -6px 14px rgba(var(--neo-hi), 0.9),
+       7px  7px 18px rgba(var(--neo-sh), 0.6);
+  }
+
+  /* INSET well — pressed-in. For empty states, sub-panels, quote/code blocks,
+     field inputs. MUST NOT lift on hover. */
+  .neo-inset {
+    background: linear-gradient(145deg, var(--neo-face-2), var(--neo-face-1));
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: calc(var(--neo-radius) - 4px);
+    box-shadow:
+      inset 4px 4px 10px rgba(var(--neo-sh), 0.55),
+      inset -4px -4px 10px rgba(var(--neo-hi), 0.85);
+  }
+
+  /* FIELD — inputs / textareas / select triggers read as gently pressed-in
+     wells. On focus the component's focus-visible:ring utilities take over the
+     box-shadow (a visible focus ring, required for a11y) — the inset returns
+     when focus leaves. */
+  .neo-field {
+    background: #FBFAFE;
+    border: 1px solid rgba(var(--neo-sh), 0.55);
+    box-shadow:
+      inset 2px 2px 5px rgba(var(--neo-sh), 0.45),
+      inset -2px -2px 5px rgba(var(--neo-hi), 0.7);
+  }
+
+  /* NAV active item — pressed IN (inset) with a faint brand-pale tint, so the
+     current page reads as physically selected. */
+  .neo-nav-active {
+    background: linear-gradient(145deg, #ECE6FA, #F7F4FC);
+    box-shadow:
+      inset 2px 2px 5px rgba(var(--neo-sh), 0.55),
+      inset -2px -2px 5px rgba(var(--neo-hi), 0.9);
+  }
+
+  /* CHIP — a small inset well for icon wells, pills, tabs, badges. */
+  .neo-chip {
+    border-radius: 9999px;
+    box-shadow:
+      inset 2px 2px 5px rgba(var(--neo-sh), 0.5),
+      inset -2px -2px 5px rgba(var(--neo-hi), 0.9);
+  }
+
+  /* CHIP button — a CLICKABLE inset chip (search field, bell, icon well). Stays
+     pressed-in (never lifts): hover adds a faint brand halo, :active deepens the
+     inset. Use this instead of .neo-interactive on an inset chip. */
+  .neo-chip-btn {
+    transition: box-shadow 0.2s ease-out, color 0.2s ease-out;
+  }
+  .neo-chip-btn:hover {
+    box-shadow:
+      inset 2px 2px 5px rgba(var(--neo-sh), 0.5),
+      inset -2px -2px 5px rgba(var(--neo-hi), 0.9),
+      0 0 0 1px rgba(var(--neo-glow), 0.22);
+  }
+  .neo-chip-btn:active {
+    box-shadow:
+      inset 3px 3px 7px rgba(var(--neo-sh-strong), 0.6),
+      inset -1px -1px 3px rgba(var(--neo-hi), 0.7);
+  }
+
+  /* INTERACTIVE — layer onto a raised surface to add the hover lift + brand
+     glow and the signature press-in on :active. */
+  .neo-interactive {
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+    will-change: transform;
+  }
+  .neo-interactive:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      -7px -7px 16px rgba(var(--neo-hi), 0.95),
+       10px 10px 26px rgba(var(--neo-sh-strong), 0.6),
+       0 12px 28px rgba(var(--neo-glow), 0.14);
+  }
+  .neo-interactive:active {
+    transform: translateY(0);
+    box-shadow:
+      inset 4px 4px 10px rgba(var(--neo-sh), 0.5),
+      inset -4px -4px 10px rgba(var(--neo-hi), 0.85);
+  }
+
+  /* BUTTON — light variants (outline/secondary/ghost): raised, press in on
+     :active. Keeps the app's button colours; only the depth is neo. */
+  .neo-btn {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background 0.2s ease-out;
+    box-shadow:
+      -3px -3px 8px rgba(var(--neo-hi), 0.7),
+       4px  4px 10px rgba(var(--neo-sh), 0.55);
+  }
+  .neo-btn:hover {
+    box-shadow:
+      -4px -4px 10px rgba(var(--neo-hi), 0.8),
+       5px  5px 13px rgba(var(--neo-sh-strong), 0.5),
+       0 6px 16px rgba(var(--neo-glow), 0.16);
+  }
+  .neo-btn:active {
+    box-shadow:
+      inset 3px 3px 7px rgba(var(--neo-sh-strong), 0.6),
+      inset -2px -2px 6px rgba(var(--neo-hi), 0.4);
+  }
+
+  /* BUTTON — filled brand (primary): the brand gradient fill + highlight +
+     brand-toned depth; presses into a brand-deep inset on :active (brand-deep
+     #2E1A6B, an existing hue). The fill lives here so any element that carries
+     .neo-btn-brand is a self-sufficient brand button (a bare `neo-btn-brand
+     text-white` chip is legible). Where a caller also sets bg-primary / bg-brand
+     / clay-brand, that utility/class paints identically over the top. */
+  .neo-btn-brand {
+    background: linear-gradient(145deg, #7B5FFF, #5A3FE8);
+    color: #fff;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    box-shadow:
+      -2px -2px 6px rgba(255, 255, 255, 0.25),
+       4px  4px 12px rgba(var(--neo-glow), 0.35);
+  }
+  .neo-btn-brand:hover {
+    box-shadow:
+      -2px -2px 6px rgba(255, 255, 255, 0.3),
+       5px  5px 16px rgba(var(--neo-glow), 0.45),
+       0 0 22px rgba(var(--neo-glow), 0.25);
+  }
+  .neo-btn-brand:active {
+    box-shadow:
+      inset 3px 3px 8px rgba(46, 26, 107, 0.5),
+      inset -2px -2px 6px rgba(255, 255, 255, 0.15);
+  }
+
+  /* BUTTON — any other filled colour (e.g. destructive): white top highlight +
+     neutral depth, press-in on :active. Neutral so a red fill never inherits a
+     brand-coloured glow. */
+  .neo-btn-solid {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    box-shadow:
+      -2px -2px 6px rgba(255, 255, 255, 0.22),
+       4px  4px 11px rgba(var(--neo-sh-strong), 0.6);
+  }
+  .neo-btn-solid:hover {
+    box-shadow:
+      -2px -2px 6px rgba(255, 255, 255, 0.28),
+       5px  5px 14px rgba(var(--neo-sh-strong), 0.7);
+  }
+  .neo-btn-solid:active {
+    box-shadow:
+      inset 3px 3px 8px rgba(0, 0, 0, 0.28),
+      inset -2px -2px 6px rgba(255, 255, 255, 0.12);
+  }
+
+  /* SELECTED row — KEEP the base raised shadows and ADD a brand-tinted halo
+     via extra box-shadow layers. Never use a ring-*; a ring overrides the
+     box-shadow and flattens the neomorphism. */
+  .neo-selected {
+    background: linear-gradient(145deg, var(--neo-face-1), var(--neo-face-2));
+    border-radius: var(--neo-radius);
+    box-shadow:
+      -6px -6px 14px rgba(var(--neo-hi), 0.9),
+       7px  7px 18px rgba(var(--neo-sh), 0.55),
+       0 0 0 1.5px rgba(var(--neo-glow), 0.55),
+       0 8px 24px rgba(var(--neo-glow), 0.22);
+  }
+  .text-display {
+    @apply text-[56px] leading-[1.05] tracking-[-0.04em] font-extrabold;
+    font-variant-numeric: tabular-nums;
+  }
+  .text-h1 {
+    @apply text-[36px] leading-[1.15] tracking-[-0.025em] font-bold;
+  }
+  .text-h2 {
+    @apply text-[24px] leading-[1.25] tracking-[-0.02em] font-semibold;
+  }
+  .text-h3 {
+    @apply text-[18px] leading-[1.35] tracking-[-0.015em] font-semibold;
+  }
+  .text-caption {
+    @apply text-[11px] leading-[1.4] tracking-[0.08em] uppercase font-medium;
+  }
+  .text-small {
+    @apply text-[12px] leading-[1.5] tracking-[0.01em];
+  }
+  .aurora-bg {
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(184, 154, 230, 0.25) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(107, 78, 255, 0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 20%, rgba(255, 182, 193, 0.1) 0%, transparent 50%);
+  }
+  .glow-brand {
+    box-shadow: 0 0 40px rgba(107, 78, 255, 0.25);
+  }
+  .glow-success {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+  }
+  .glow-hot {
+    box-shadow: 0 0 30px rgba(255, 77, 77, 0.4);
+  }
+  .glow-warning {
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.25);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes float-blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.05); }
+  66% { transform: translate(-20px, 15px) scale(0.95); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes scan-line {
+  0%, 100% { top: 0%; }
+  50% { top: 90%; }
+}
+
+.animate-pulse-glow { animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.animate-float-blob { animation: float-blob 20s ease-in-out infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.5) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Neomorphic motion vocabulary ──────────────────────────────────────────
+   All gentle, all reduced-motion-guarded below. */
+
+/* Status / pulse dot — a soft opacity + scale pulse. */
+@keyframes neo-dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.82); }
+}
+.animate-neo-dot { animation: neo-dot-pulse 2s ease-in-out infinite; }
+
+/* Attention chip — a soft brand glow that breathes. */
+@keyframes neo-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--neo-glow), 0); }
+  50%      { box-shadow: 0 0 16px 2px rgba(var(--neo-glow), 0.35); }
+}
+.animate-neo-glow { animation: neo-glow-pulse 2.4s ease-in-out infinite; }
+
+/* Optional, sparing: slow gradient-text drift for hero headings, using the
+   brand → brand-light → brand ramp (existing hues only). */
+@keyframes neo-gradient-drift {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.neo-gradient-text {
+  background: linear-gradient(100deg, #6B4EFF, #B89AE6, #6B4EFF);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: neo-gradient-drift 6s linear infinite;
+}
+
+/* ── Accessibility: honour prefers-reduced-motion ──────────────────────────
+   Motion-reduced users get the final state instantly — no transitions, no
+   keyframe loops, no hover lift. JS-driven motion (framer-motion, the count-up
+   tween, the gauge/sparkline draws) is gated separately in the components via
+   useReducedMotion(); this covers all CSS motion. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .neo-interactive:hover,
+  .neo-btn:hover,
+  .neo-btn-brand:hover {
+    transform: none;
+  }
+}

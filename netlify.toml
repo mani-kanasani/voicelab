@@ -1,0 +1,26 @@
+# VoiceLab — Netlify configuration
+# Static Vite SPA + Netlify Functions (v2, ESM) + Netlify Blobs (zero-config storage).
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[dev]
+  command = "npm run vite"
+  targetPort = 5219
+  port = 8888
+  framework = "#custom"
+
+# SPA fallback so client routing / deep links resolve to index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Optional environment variables surfaced by the "Deploy to Netlify" button.
+# NONE are required — the app runs and is useful with all of these unset.
+[template.environment]
+  DEEPGRAM_API_KEY = "Optional. Enables the Transcription card. Get a free key (hundreds of hours of credit) at https://console.deepgram.com/signup"
+  SITE_PASSWORD    = "Optional. Set a password to lock your VoiceLab behind a single login screen."
+  RETELL_API_KEY   = "Optional. Enables signature verification on the Testing webhook. Leave blank to accept calls via the per-project token only."
